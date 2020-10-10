@@ -22,8 +22,6 @@ namespace WebApi.Services
             {
                 if (model.Id == 0)
                 {
-                    model.CreatedBy = model.UpdatedBy;
-                    model.CreatedDate = model.UpdatedDate;
                     db.Shops.Add(model);
                     db.SaveChanges();
                 }
