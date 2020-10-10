@@ -16,12 +16,22 @@ namespace WebApi.Services
             _config = config;
         }
 
-        public void Add(Shop model)
+        public void AddOrUpdate(Shop model)
         {
             using (var db = new NatFlutterContext(_config))
             {
-                db.Shops.Add(model);
-                db.SaveChanges();
+                if (model.Id == 0)
+                {
+                    model.CreatedBy = model.UpdatedBy;
+                    model.CreatedDate = model.UpdatedDate;
+                    db.Shops.Add(model);
+                    db.SaveChanges();
+                }
+                else
+                {
+                    db.Shops.Update(model);
+                    db.SaveChanges();
+                }
             }
         }
 
@@ -30,6 +40,14 @@ namespace WebApi.Services
             using (var db = new NatFlutterContext(_config))
             {
                 return db.Shops.ToList();
+            }
+        }
+
+        public Shop GetById(int id)
+        {
+            using (var db = new NatFlutterContext(_config))
+            {
+                return db.Shops.Where(s => s.Id == id).FirstOrDefault();
             }
         }
     }

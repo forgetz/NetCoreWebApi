@@ -10,9 +10,6 @@ namespace WebApi.Models
     public partial class NatFlutterContext : DbContext
     {
         private IConfiguration _config;
-        public NatFlutterContext()
-        {
-        }
 
         public NatFlutterContext(IConfiguration config)
         {
@@ -33,7 +30,7 @@ namespace WebApi.Models
             if (!optionsBuilder.IsConfigured)
             {
                 //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                //optionsBuilder.UseSqlServer("Data source=10.10.7.35;Initial Catalog=NatFlutter;User ID=saranpong;Password=saranpong;");
+                //                optionsBuilder.UseSqlServer("Data source=10.10.7.35;Initial Catalog=NatFlutter;User ID=saranpong;Password=saranpong;");
                 optionsBuilder.UseSqlServer(_config["ConnectionStrings:NatFlutterContext"]);
             }
         }
@@ -52,20 +49,34 @@ namespace WebApi.Models
 
                 entity.Property(e => e.CreatedBy)
                     .HasMaxLength(100)
-                    .HasColumnName("created_by");
+                    .HasColumnName("created_by")
+                    .HasDefaultValueSql("(N'system')");
 
                 entity.Property(e => e.CreatedDate)
                     .HasColumnType("datetime")
                     .HasColumnName("created_date")
+                    .HasDefaultValueSql("(getdate())")
                     .HasAnnotation("Relational:ColumnType", "datetime");
 
                 entity.Property(e => e.ImageUrl)
                     .HasMaxLength(100)
                     .HasColumnName("image_url");
 
-                entity.Property(e => e.IsActive).HasColumnName("is_active");
+                entity.Property(e => e.IsActive)
+                    .HasColumnName("is_active")
+                    .HasDefaultValueSql("((1))");
 
-                entity.Property(e => e.IsDelete).HasColumnName("is_delete");
+                entity.Property(e => e.IsDelete)
+                    .HasColumnName("is_delete")
+                    .HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.Latitude)
+                    .HasMaxLength(50)
+                    .HasColumnName("latitude");
+
+                entity.Property(e => e.Longitude)
+                    .HasMaxLength(50)
+                    .HasColumnName("longitude");
 
                 entity.Property(e => e.Name)
                     .HasMaxLength(500)
@@ -77,11 +88,13 @@ namespace WebApi.Models
 
                 entity.Property(e => e.UpdatedBy)
                     .HasMaxLength(100)
-                    .HasColumnName("updated_by");
+                    .HasColumnName("updated_by")
+                    .HasDefaultValueSql("(N'system')");
 
                 entity.Property(e => e.UpdatedDate)
                     .HasColumnType("datetime")
                     .HasColumnName("updated_date")
+                    .HasDefaultValueSql("(getdate())")
                     .HasAnnotation("Relational:ColumnType", "datetime");
             });
 
