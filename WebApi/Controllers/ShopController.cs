@@ -31,15 +31,23 @@ namespace WebApi.Controllers
             return Ok(new ResponseResult(200, StatusMessage.Completed.ToString(), "", list));
         }
 
+        [HttpGet("GetById")]
+        public IActionResult GetById(int id)
+        {
+            ShopServices shs = new ShopServices(_config);
+            var model = shs.GetById(id);
+            return Ok(new ResponseResult(200, StatusMessage.Completed.ToString(), "", model));
+        }
+
         [HttpPost("AddOrUpdate")]
         public async Task<IActionResult> AddOrUpdate(int? id, string name, string address, string phoneNo, string latitude, string longitude, bool? isActive, string updatedBy, IFormFile file)
         {
             int shopId = !id.HasValue ? 0 : id.Value;
 
-            string imageUrl = await FileHelpers.FileUpload(shopId, file);
+            string imageUrl = "";
             ShopServices shs = new ShopServices(_config);
-            string lat = "";
-            string lng = "";
+            string lat = latitude;
+            string lng = longitude;
             string createdBy = updatedBy;
             DateTime? createdDate = DateTime.Now;
 
@@ -51,7 +59,7 @@ namespace WebApi.Controllers
                     return Ok(new ResponseResult(200, StatusMessage.NotFound.ToString(), "", null));
                 }
 
-                imageUrl = !string.IsNullOrEmpty(imageUrl) ? imageUrl : local.ImageUrl;
+                imageUrl = await FileHelpers.FileUpload(shopId, file) ?? local.ImageUrl;
                 lat = !string.IsNullOrEmpty(latitude) ? latitude : local.Latitude;
                 lng = !string.IsNullOrEmpty(longitude) ? longitude : local.Longitude;
                 createdBy = local.CreatedBy;
@@ -76,6 +84,16 @@ namespace WebApi.Controllers
             };
             
             shs.AddOrUpdate(model);
+
+            if (shopId == 0 && file.Length > 0)
+            {
+                imageUrl = await FileHelpers.FileUpload(model.Id, file);
+                model.ImageUrl = imageUrl;
+                shs.AddOrUpdate(model);
+            }
+
+
+
             return Ok(new ResponseResult(200, StatusMessage.Completed.ToString(), "", model));
         }
 
