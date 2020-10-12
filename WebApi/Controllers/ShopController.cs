@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using WebApi.Helpers;
 using WebApi.Models;
 using WebApi.Services;
@@ -16,16 +17,19 @@ namespace WebApi.Controllers
     [ApiController]
     public class ShopController : ControllerBase
     {
-        private IConfiguration _config;
+        private readonly IConfiguration _config;
+        private readonly ILogger<ShopController> _logger;
 
-        public ShopController(IConfiguration config)
+        public ShopController(IConfiguration config, ILogger<ShopController> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         [HttpGet("GetAll")]
         public IActionResult GetAll()
         {
+            _logger.LogInformation("Shop/GetAll");
             ShopServices shs = new ShopServices(_config);
             var list = shs.GetAll();
             return Ok(new ResponseResult(200, StatusMessage.Completed.ToString(), "", list));
