@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ namespace WebApi.Controllers
         public IActionResult GetAll()
         {
             _logger.LogInformation("Shop/GetAll");
-            ShopServices shs = new ShopServices(_config);
+            ShopServices shs = new ShopServices(_config, _logger);
             var list = shs.GetAll();
             return Ok(new ResponseResult(200, StatusMessage.Completed.ToString(), "", list));
         }
@@ -38,7 +39,7 @@ namespace WebApi.Controllers
         [HttpGet("GetById")]
         public IActionResult GetById(int id)
         {
-            ShopServices shs = new ShopServices(_config);
+            ShopServices shs = new ShopServices(_config, _logger);
             var model = shs.GetById(id);
             return Ok(new ResponseResult(200, StatusMessage.Completed.ToString(), "", model));
         }
@@ -46,33 +47,37 @@ namespace WebApi.Controllers
         [HttpPost("AddOrUpdate")]
         public async Task<IActionResult> AddOrUpdate(int? id, string name, string address, string phoneNo, string latitude, string longitude, bool? isActive, string updatedBy, IFormFile file)
         {
-            int shopId = !id.HasValue ? 0 : id.Value;
+            _logger.LogInformation("Shop/AddOrUpdate");
+            _logger.LogInformation("id: {0} name: {1} file: {2} type: {3} len: {4}", id, name, file.FileName, file.ContentType, file.Length);
+
+            int userId = !id.HasValue ? 0 : id.Value;
 
             string imageUrl = "";
-            ShopServices shs = new ShopServices(_config);
+            ShopServices shs = new ShopServices(_config, _logger);
             string lat = latitude;
             string lng = longitude;
             string createdBy = updatedBy;
             DateTime? createdDate = DateTime.Now;
 
-            if (shopId > 0)
+            Shop local = shs.GetByUserId(userId);
+            if (local != null)
             {
-                Shop local = shs.GetById(shopId);
-                if (local == null)
-                {
-                    return Ok(new ResponseResult(200, StatusMessage.NotFound.ToString(), "", null));
-                }
-
-                imageUrl = await FileHelpers.FileUpload(shopId, file) ?? local.ImageUrl;
+                _logger.LogInformation("local.userid=" + local.UserId);
+                imageUrl = await FileHelpers.FileUpload(userId, file) ?? local.ImageUrl;
                 lat = !string.IsNullOrEmpty(latitude) ? latitude : local.Latitude;
                 lng = !string.IsNullOrEmpty(longitude) ? longitude : local.Longitude;
                 createdBy = local.CreatedBy;
                 createdDate = local.CreatedDate;
             }
+            else
+            {
+                _logger.LogInformation("New");
+                imageUrl = await FileHelpers.FileUpload(userId, file);
+            }
             
             Shop model = new Shop()
             {
-                Id = shopId,
+                UserId = userId,
                 Name = name,
                 Address = address,
                 PhoneNo = phoneNo,
@@ -88,15 +93,6 @@ namespace WebApi.Controllers
             };
             
             shs.AddOrUpdate(model);
-
-            if (shopId == 0 && file.Length > 0)
-            {
-                imageUrl = await FileHelpers.FileUpload(model.Id, file);
-                model.ImageUrl = imageUrl;
-                shs.AddOrUpdate(model);
-            }
-
-
 
             return Ok(new ResponseResult(200, StatusMessage.Completed.ToString(), "", model));
         }

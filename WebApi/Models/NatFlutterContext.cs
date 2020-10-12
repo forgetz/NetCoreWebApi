@@ -96,6 +96,8 @@ namespace WebApi.Models
                     .HasColumnName("updated_date")
                     .HasDefaultValueSql("(getdate())")
                     .HasAnnotation("Relational:ColumnType", "datetime");
+
+                entity.Property(e => e.UserId).HasColumnName("user_id");
             });
 
             modelBuilder.Entity<User>(entity =>

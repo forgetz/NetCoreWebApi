@@ -8,6 +8,7 @@ namespace WebApi.Models
     public partial class Shop
     {
         public int Id { get; set; }
+        public int? UserId { get; set; }
         public string Name { get; set; }
         public string Address { get; set; }
         public string PhoneNo { get; set; }
