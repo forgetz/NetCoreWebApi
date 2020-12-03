@@ -37,10 +37,18 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("GetById")]
-        public IActionResult GetById(int id)
+        public IActionResult GetById(int userid)
         {
             ShopServices shs = new ShopServices(_config, _logger);
-            var model = shs.GetById(id);
+            var model = shs.GetById(userid);
+            return Ok(new ResponseResult(200, StatusMessage.Completed.ToString(), "", model));
+        }
+
+        [HttpGet("GetByUserId")]
+        public IActionResult GetByUserId(int id)
+        {
+            ShopServices shs = new ShopServices(_config, _logger);
+            var model = shs.GetByUserId(id);
             return Ok(new ResponseResult(200, StatusMessage.Completed.ToString(), "", model));
         }
 
